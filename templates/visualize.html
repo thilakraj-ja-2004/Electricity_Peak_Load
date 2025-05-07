@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Visualize - Electricity Peak Load Analyzer{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Prediction & Visualization</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Select Gone</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('visualize') }}">
+                <div class="form-group">
+                    <label for="region">Zones:</label>
+                    <select class="form-control" id="region" name="region">
+                        {% for r in regions %}
+                        <option value="{{ r }}" {% if r == region %}selected{% endif %}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">View Data</button>
+            </form>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-warning" role="alert">
+        {{ error }}
+    </div>
+    {% else %}
+    
+    <!-- Gradient Boosting Prediction Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Model Performance</h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <h5>Prediction Model Performance</h5>
+                <p>
+                    <strong>RMSE:</strong> {{ gb_metrics.rmse }}
+                    <strong>MAE:</strong> {{ gb_metrics.mae }}
+                    <strong>R² Score:</strong> {{ gb_metrics.r2 }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Month Prediction -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Next Month Load Prediction</h6>
+        </div>
+        <div class="card-body">
+            {{ prediction_chart|safe }}
+        </div>
+    </div>
+
+    <!-- Model Evaluation -->
+    <div class="row">
+        <!-- Actual vs Predicted -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Actual vs Predicted Load</h6>
+                </div>
+                <div class="card-body">
+                    {{ comparison_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <!-- Model Metrics -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Model Performance Metrics</h6>
+                </div>
+                <div class="card-body">
+                    {{ metrics_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seasonal Forecast and Feature Importance -->
+    <div class="row">
+        <!-- Seasonal Forecast -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Seasonal Load Forecast</h6>
+                </div>
+                <div class="card-body">
+                    {{ seasonal_forecast_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <!-- Feature Importance -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Feature Importance</h6>
+                </div>
+                <div class="card-body">
+                    {{ feature_importance_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Seasonal Insights -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Seasonal Load Insights</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="alert alert-info">
+                        <h5>Seasonal Statistics for {{ region }}</h5>
+                        <ul>
+                            {% for insight in seasonal_insights %}
+                            <li>{{ insight }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="alert alert-warning">
+                        <h5>Peak Hour Patterns</h5>
+                        <ul>
+                            {% for insight in peak_hour_insights %}
+                            <li>{{ insight }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seasonal Bar Charts -->
+    <div class="row">
+        <!-- Average Load by Season -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Average Load by Season</h6>
+                </div>
+                <div class="card-body">
+                    {{ season_bar_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <!-- Peak Load by Season -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Peak Load by Season</h6>
+                </div>
+                <div class="card-body">
+                    {{ season_peak_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- More Seasonal Charts -->
+    <div class="row">
+        <!-- Minimum Load by Season -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Minimum Load by Season</h6>
+                </div>
+                <div class="card-body">
+                    {{ season_min_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <!-- Weekday vs Weekend by Season -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Weekday vs Weekend by Season</h6>
+                </div>
+                <div class="card-body">
+                    {{ season_day_type_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Seasonal Visualizations -->
+    <div class="row">
+        <!-- Season Box Plot -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Load Distribution by Season</h6>
+                </div>
+                <div class="card-body">
+                    {{ season_box_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <!-- Hourly Peaks by Season -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Hourly Peak Load by Season</h6>
+                </div>
+                <div class="card-body">
+                    {{ hour_peaks_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Other Seasonal Charts -->
+    <div class="row">
+        <!-- Rainy vs Non-Rainy Season -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Rainy vs Non-Rainy Season Load</h6>
+                </div>
+                <div class="card-body">
+                    {{ rain_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <!-- Monthly Analysis -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Average Load</h6>
+                </div>
+                <div class="card-body">
+                    {{ monthly_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decomposition Plot -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Time Series Decomposition</h6>
+        </div>
+        <div class="card-body">
+            <img src="data:image/png;base64,{{ plot_url }}" class="img-fluid" alt="Seasonal Decomposition">
+        </div>
+    </div>
+
+    <!-- Peak Load Analysis -->
+   <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Peak Load Analysis</h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <h5>Load Peak Alerts</h5>
+                <ul>
+                    {% for suggestion in suggestions %}
+                    <li>{{ suggestion }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {{ stem_chart|safe }}
+        </div>
+    </div>
+
+    <!-- Additional Visualizations -->
+    <div class="row">
+        <!-- Load Distribution by Gone -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Load Distribution by Gone</h6>
+                </div>
+                <div class="card-body">
+                    {{ pie_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <!-- Average Load by Gone -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Average Load by Gone</h6>
+                </div>
+                <div class="card-body">
+                    {{ bar_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Load Over Time -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Load Over Time</h6>
+                </div>
+                <div class="card-body">
+                    {{ line_chart|safe }}
+                </div>
+            </div>
+        </div>
+        <!-- Load Distribution -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Load Distribution</h6>
+                </div>
+                <div class="card-body">
+                    {{ hist_chart|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

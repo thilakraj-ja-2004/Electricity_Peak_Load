@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Dataset - Electricity Peak Load Analyzer{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-upload me-2"></i>Upload Dataset
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="mb-4">Upload a CSV file containing electricity load data. The file must have columns for <code>Timestamp</code>, <code>Region</code>, and <code>Load</code>.</p>
+                
+                <form method="POST" action="/upload" enctype="multipart/form-data" class="mb-4">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select CSV File</label>
+                        <input class="form-control" type="file" id="file" name="file" accept=".csv">
+                        <div class="form-text">Only CSV files are supported.</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary py-2">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>Upload
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="alert alert-info">
+                    <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>File Format Guide</h5>
+                    <p>The CSV file should follow this format:</p>
+                    <pre class="bg-light p-3 rounded"><code>Timestamp,Region,Load
+2023-01-01 00:00:00,Coimbatore,87.5
+2023-01-01 01:00:00,Coimbatore,82.3
+2023-01-01 00:00:00,Tiruppur,79.8
+...</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
